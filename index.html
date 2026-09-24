@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quer sair comigo?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;700&display=swap">
+<style>
+  body { margin: 0; } [hidden] { display: none !important; } *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    color-scheme: light;
+    --paper: #FFF6F1;
+    --blush: #FBE1E3;
+    --cherry: #B0123B;
+    --cherry-deep: #7E0B2A;
+    --ink: #3A0F1C;
+    --muted: #8A5A66;
+    --butter: #F5C65A;
+    --line: #F0C9CF;
+    --display: "Gloock", Georgia, "Times New Roman", serif;
+    --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 0 16px;
+    overflow-x: hidden;
+  }
+  .wrap {
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    padding-block: 32px;
+  }
+  .card {
+    width: 100%;
+    max-width: 460px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 32px 24px;
+    box-shadow: 0 18px 40px -24px rgba(126, 11, 42, .35);
+    position: relative;
+  }
+  .stamp {
+    position: absolute;
+    top: -18px; right: 22px;
+    background: var(--butter);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 999px;
+    transform: rotate(4deg);
+  }
+  h1, h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    line-height: 1.08;
+    text-wrap: balance;
+    margin: 0;
+    color: var(--cherry-deep);
+  }
+  h1 { font-size: clamp(38px, 11vw, 54px); }
+  h2 { font-size: clamp(28px, 8vw, 36px); }
+  p { margin: 0; }
+  .lede { color: var(--muted); margin-top: 12px; }
+  .step { display: flex; flex-direction: column; gap: 22px; }
+  .step-head { display: flex; flex-direction: column; gap: 10px; }
+  .kicker {
+    font-size: 12px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--cherry);
+  }
+
+  .heart {
+    width: 64px; height: 64px;
+    animation: beat 1.4s ease-in-out infinite;
+  }
+  @keyframes beat {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.12); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.08); }
+  }
+
+  .choices { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; min-height: 64px; }
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible, label:focus-within {
+    outline: 3px solid var(--butter); outline-offset: 2px;
+  }
+  .btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-weight: 700;
+    font-size: 17px;
+    transition: transform .2s ease, background .2s ease;
+  }
+  .btn-yes { background: var(--cherry); color: #fff; transform-origin: left center; }
+  .btn-yes:hover { background: var(--cherry-deep); }
+  .btn-no { background: var(--blush); color: var(--cherry-deep); }
+  .btn-no.runaway {
+    position: fixed;
+    z-index: 10;
+    transition: left .25s ease, top .25s ease, transform .25s ease, opacity .25s ease;
+  }
+  .btn[disabled] { opacity: .4; cursor: not-allowed; }
+  .taunt { min-height: 24px; color: var(--cherry); font-weight: 500; }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-label { font-weight: 700; font-size: 14px; }
+  input[type="date"], input[type="time"] {
+    font: inherit;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .chip[aria-pressed="true"] { background: var(--cherry); border-color: var(--cherry); color: #fff; }
+
+  .foods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .food {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    text-align: left;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 14px;
+    color: var(--ink);
+  }
+  .food .emo { font-size: 28px; line-height: 1.2; }
+  .food b { font-size: 16px; }
+  .food small { color: var(--muted); font-size: 13px; }
+  .food[aria-pressed="true"] { background: var(--blush); border-color: var(--cherry); box-shadow: inset 0 0 0 1px var(--cherry); }
+
+  .summary {
+    display: grid; grid-template-columns: auto 1fr; gap: 10px 16px;
+    background: var(--paper); border: 1px dashed var(--cherry);
+    border-radius: 16px; padding: 18px;
+  }
+  .summary dt { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+  .summary dd { margin: 0; font-weight: 700; }
+  .actions { display: flex; flex-direction: column; gap: 10px; }
+  .actions a.btn { text-align: center; text-decoration: none; }
+  .btn-wa { background: #1F8F4E; color: #fff; }
+  .btn-ghost { background: transparent; color: var(--cherry-deep); border: 1px solid var(--line); }
+  .note { font-size: 13px; color: var(--muted); text-align: center; }
+  .back { background: none; border: 0; color: var(--muted); padding: 0; font-size: 14px; align-self: flex-start; text-decoration: underline; }
+
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; width: 100%; height: 100%; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .heart { animation: none; }
+    .btn, .btn-no.runaway { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+<main class="wrap">
+  <div class="card">
+    <span class="stamp">convite oficial</span>
+
+    <!-- Passo 1 -->
+    <section class="step" id="s1">
+      <svg class="heart" viewBox="0 0 64 64" aria-hidden="true">
+        <path fill="#B0123B" d="M32 56S6 40.5 6 22.5C6 14 12.6 8 20.3 8c5 0 9.3 2.7 11.7 6.7C34.4 10.7 38.7 8 43.7 8 51.4 8 58 14 58 22.5 58 40.5 32 56 32 56z"/>
+      </svg>
+      <div class="step-head">
+        <h1>Quer sair comigo?</h1>
+        <p class="lede">Prometo boa conversa, boa comida e zero pressão. Só tem uma resposta certa, mas fica à vontade.</p>
+      </div>
+      <div class="choices">
+        <button class="btn btn-yes" id="yes">Sim!</button>
+        <button class="btn btn-no" id="no">Não</button>
+      </div>
+      <p class="taunt" id="taunt" aria-live="polite"></p>
+    </section>
+
+    <!-- Passo 2 -->
+    <section class="step" id="s2" hidden>
+      <div class="step-head">
+        <span class="kicker">Eba! Agora é oficial</span>
+        <h2>Quando fica bom pra você?</h2>
+      </div>
+      <div class="field">
+        <label class="field-label" for="date">Dia</label>
+        <input type="date" id="date">
+      </div>
+      <div class="field">
+        <span class="field-label" id="time-label">Horário</span>
+        <div class="chips" role="group" aria-labelledby="time-label" id="times">
+          <button class="chip" data-time="12:00" aria-pressed="false">12:00</button>
+          <button class="chip" data-time="16:00" aria-pressed="false">16:00</button>
+          <button class="chip" data-time="19:00" aria-pressed="false">19:00</button>
+          <button class="chip" data-time="20:30" aria-pressed="false">20:30</button>
+          <button class="chip" data-time="outro" aria-pressed="false">Outro</button>
+        </div>
+        <input type="time" id="custom-time" hidden aria-label="Outro horário">
+      </div>
+      <button class="btn btn-yes" id="to-food" disabled>Continuar</button>
+    </section>
+
+    <!-- Passo 3 -->
+    <section class="step" id="s3" hidden>
+      <button class="back" data-back="s2">← voltar</button>
+      <div class="step-head">
+        <span class="kicker">Última pergunta</span>
+        <h2>O que a gente vai comer?</h2>
+        <p class="lede">Escolhe a sua favorita e eu cuido do resto.</p>
+      </div>
+      <div class="foods" id="foods">
+        <button class="food" data-food="Pizza" aria-pressed="false"><span class="emo">🍕</span><b>Pizza</b><small>clássico que nunca erra</small></button>
+        <button class="food" data-food="Sushi" aria-pressed="false"><span class="emo">🍣</span><b>Sushi</b><small>japa caprichado</small></button>
+        <button class="food" data-food="Hambúrguer" aria-pressed="false"><span class="emo">🍔</span><b>Hambúrguer</b><small>com batata, óbvio</small></button>
+        <button class="food" data-food="Massa" aria-pressed="false"><span class="emo">🍝</span><b>Massa</b><small>clima de cantina italiana</small></button>
+        <button class="food" data-food="Comida mexicana" aria-pressed="false"><span class="emo">🌮</span><b>Mexicana</b><small>tacos e nachos</small></button>
+        <button class="food" data-food="Açaí / sobremesa" aria-pressed="false"><span class="emo">🍨</span><b>Doce</b><small>açaí, sorvete ou crepe</small></button>
+      </div>
+      <button class="btn btn-yes" id="finish" disabled>Fechado!</button>
+    </section>
+
+    <!-- Passo 4 -->
+    <section class="step" id="s4" hidden>
+      <div class="step-head">
+        <span class="kicker">Date marcado</span>
+        <h2>Tá combinado, então.</h2>
+        <p class="lede">Manda sua resposta pra mim pelo botão abaixo, assim eu já me organizo.</p>
+      </div>
+      <dl class="summary">
+        <dt>Dia</dt><dd id="r-date"></dd>
+        <dt>Hora</dt><dd id="r-time"></dd>
+        <dt>Comida</dt><dd id="r-food"></dd>
+      </dl>
+      <div class="actions">
+        <a class="btn btn-wa" id="wa" href="#" target="_blank" rel="noopener">Enviar no WhatsApp</a>
+        <button class="btn btn-ghost" id="copy">Copiar resposta</button>
+        <p class="note" id="copy-note" aria-live="polite"></p>
+      </div>
+      <button class="back" data-back="s2">mudar alguma coisa</button>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const steps = ["s1", "s2", "s3", "s4"];
+  const show = (id) => steps.forEach((s) => ($(s).hidden = s !== id));
+  const state = { date: "", time: "", food: "" };
+
+  // ---- Passo 1: botão "Não" fugitivo ----
+  const yes = $("yes"), no = $("no"), taunt = $("taunt");
+  const lines = [
+    "Hmm, acho que você clicou errado.",
+    "Tem certeza?",
+    "Pensa bem...",
+    "Última chance de mudar de ideia!",
+    "Esse botão tá ficando tímido.",
+    "Pronto, sumiu. Só sobrou o sim."
+  ];
+  let tries = 0, lastFlee = 0;
+  function flee(e) {
+    if (e) e.preventDefault();
+    const now = Date.now();
+    if (now - lastFlee < 350) return;
+    lastFlee = now;
+    tries++;
+    taunt.textContent = lines[Math.min(tries - 1, lines.length - 1)];
+    yes.style.transform = `scale(${1 + tries * 0.12})`;
+    if (tries >= lines.length) {
+      no.style.opacity = "0";
+      setTimeout(() => (no.hidden = true), 250);
+      return;
+    }
+    const scale = Math.max(1 - tries * 0.14, 0.35);
+    if (!no.classList.contains("runaway")) {
+      const r = no.getBoundingClientRect();
+      no.style.left = r.left + "px";
+      no.style.top = r.top + "px";
+      no.classList.add("runaway");
+    }
+    const w = no.offsetWidth, h = no.offsetHeight, pad = 16;
+    const maxX = Math.max(pad, window.innerWidth - w - pad);
+    const maxY = Math.max(pad, window.innerHeight - h - pad);
+    const yr = yes.getBoundingClientRect();
+    let x, y, guard = 0;
+    do {
+      x = pad + Math.random() * (maxX - pad);
+      y = pad + Math.random() * (maxY - pad);
+      guard++;
+    } while (guard < 20 && x < yr.right + 20 && x + w > yr.left - 20 && y < yr.bottom + 20 && y + h > yr.top - 20);
+    requestAnimationFrame(() => {
+      no.style.left = x + "px";
+      no.style.top = y + "px";
+      no.style.transform = `scale(${scale})`;
+    });
+  }
+  no.addEventListener("mouseenter", flee);
+  no.addEventListener("pointerdown", flee);
+  no.addEventListener("click", flee);
+
+  yes.addEventListener("click", () => {
+    no.hidden = true;
+    confetti();
+    show("s2");
+  });
+
+  // ---- Passo 2: dia e hora ----
+  const dateEl = $("date"), customTime = $("custom-time"), toFood = $("to-food");
+  const today = new Date();
+  const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  dateEl.min = iso(today);
+  const check2 = () => (toFood.disabled = !(state.date && state.time));
+  dateEl.addEventListener("input", () => { state.date = dateEl.value; check2(); });
+  $("times").addEventListener("click", (e) => {
+    const b = e.target.closest(".chip");
+    if (!b) return;
+    document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", c === b ? "true" : "false"));
+    if (b.dataset.time === "outro") {
+      customTime.hidden = false;
+      customTime.focus();
+      state.time = customTime.value;
+    } else {
+      customTime.hidden = true;
+      state.time = b.dataset.time;
+    }
+    check2();
+  });
+  customTime.addEventListener("input", () => { state.time = customTime.value; check2(); });
+  toFood.addEventListener("click", () => show("s3"));
+
+  // ---- Passo 3: comida ----
+  const finish = $("finish");
+  $("foods").addEventListener("click", (e) => {
+    const b = e.target.closest(".food");
+    if (!b) return;
+    document.querySelectorAll(".food").forEach((f) => f.setAttribute("aria-pressed", f === b ? "true" : "false"));
+    state.food = b.dataset.food;
+    finish.disabled = false;
+  });
+
+  document.querySelectorAll("[data-back]").forEach((b) => b.addEventListener("click", () => show(b.dataset.back)));
+
+  // ---- Passo 4: resumo ----
+  function prettyDate(v) {
+    const [y, m, d] = v.split("-").map(Number);
+    const s = new Date(y, m - 1, d).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  function message() {
+    return `Sim, eu topo sair com você! 💘\nDia: ${prettyDate(state.date)}\nHora: ${state.time}\nComida: ${state.food}`;
+  }
+  finish.addEventListener("click", () => {
+    $("r-date").textContent = prettyDate(state.date);
+    $("r-time").textContent = state.time;
+    $("r-food").textContent = state.food;
+    $("wa").href = "https://wa.me/5531998043077?text=" + encodeURIComponent(message());
+    $("copy-note").textContent = "";
+    show("s4");
+    confetti();
+  });
+  $("copy").addEventListener("click", async () => {
+    const note = $("copy-note");
+    try {
+      await navigator.clipboard.writeText(message());
+      note.textContent = "Copiado! É só colar na conversa.";
+    } catch {
+      note.textContent = message().replace(/\n/g, " · ");
+    }
+  });
+
+  // ---- Confete de corações ----
+  const cv = $("confetti"), ctx = cv.getContext("2d");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function heart(x, y, s, c) {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.moveTo(x, y + s * 0.3);
+    ctx.bezierCurveTo(x, y, x - s * 0.5, y, x - s * 0.5, y + s * 0.3);
+    ctx.bezierCurveTo(x - s * 0.5, y + s * 0.6, x, y + s * 0.8, x, y + s);
+    ctx.bezierCurveTo(x, y + s * 0.8, x + s * 0.5, y + s * 0.6, x + s * 0.5, y + s * 0.3);
+    ctx.bezierCurveTo(x + s * 0.5, y, x, y, x, y + s * 0.3);
+    ctx.fill();
+  }
+  function confetti() {
+    if (reduce) return;
+    cv.width = innerWidth; cv.height = innerHeight;
+    const colors = ["#B0123B", "#E0476B", "#F5C65A", "#F7A1B5"];
+    const ps = Array.from({ length: 70 }, () => ({
+      x: innerWidth / 2, y: innerHeight * 0.45,
+      vx: (Math.random() - 0.5) * 12, vy: -Math.random() * 12 - 4,
+      s: 8 + Math.random() * 12, c: colors[(Math.random() * colors.length) | 0]
+    }));
+    let t = 0;
+    (function frame() {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ps.forEach((p) => { p.vy += 0.35; p.x += p.vx; p.y += p.vy; heart(p.x, p.y, p.s, p.c); });
+      if (++t < 120) requestAnimationFrame(frame); else ctx.clearRect(0, 0, cv.width, cv.height);
+    })();
+  }
+})();
+</script>
+</body>
+</html>
