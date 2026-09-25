@@ -359,19 +359,30 @@
     if (state.time && !livre(state.time)) setNote("Esse horário já está ocupado. Escolhe outro?", true);
     check2();
   }
+  // O Google às vezes devolve uma página de erro em vez de JSON: tenta de novo algumas vezes
+  async function fetchJson(url, opts, onRetry) {
+    for (let i = 0; i < 4; i++) {
+      if (i) { if (onRetry) onRetry(i); await new Promise((r) => setTimeout(r, 800 * i)); }
+      try {
+        const r = await fetch(url, opts);
+        return await r.json();
+      } catch {}
+    }
+    throw new Error("sem resposta");
+  }
   async function loadBusy(date) {
     busy = [];
     if (!AGENDA_URL || !date) { applyBusy(); return; }
     setNote("Conferindo os horários livres...");
     toFood.disabled = true;
     try {
-      const r = await fetch(AGENDA_URL + "?date=" + encodeURIComponent(date));
-      const data = await r.json();
+      const data = await fetchJson(AGENDA_URL + "?date=" + encodeURIComponent(date));
       if (date !== state.date) return;
       busy = data.ok ? data.busy : [];
       setNote(busy.length ? "Os horários riscados já estão ocupados." : "");
     } catch {
-      setNote("");
+      if (date !== state.date) return;
+      setNote("Não consegui ver a agenda agora. Pode escolher, eu confiro no final.");
     }
     applyBusy();
   }
@@ -434,13 +445,14 @@
     if (!AGENDA_URL) { note.textContent = ""; return; }
     note.textContent = "Salvando na agenda...";
     try {
-      const r = await fetch(AGENDA_URL, {
+      let retried = false;
+      const data = await fetchJson(AGENDA_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ date: state.date, time: state.time, food: state.food })
-      });
-      const data = await r.json();
-      if (data.ok) { note.textContent = "Já está na agenda ✓"; return; }
+      }, () => { retried = true; });
+      // "ocupado" depois de uma nova tentativa quer dizer que a primeira já tinha salvado
+      if (data.ok || (retried && data.error === "ocupado")) { note.textContent = "Já está na agenda ✓"; return; }
       if (data.error === "ocupado") {
         note.textContent = "";
         show("s2");
