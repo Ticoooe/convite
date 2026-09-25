@@ -363,10 +363,12 @@
   async function fetchJson(url, opts, onRetry) {
     for (let i = 0; i < 4; i++) {
       if (i) { if (onRetry) onRetry(i); await new Promise((r) => setTimeout(r, 800 * i)); }
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000); // pedido travado: desiste e tenta de novo
       try {
-        const r = await fetch(url, opts);
+        const r = await fetch(url, { ...opts, signal: ctrl.signal });
         return await r.json();
-      } catch {}
+      } catch {} finally { clearTimeout(timer); }
     }
     throw new Error("sem resposta");
   }
