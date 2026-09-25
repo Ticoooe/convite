@@ -139,6 +139,9 @@
     font-variant-numeric: tabular-nums;
   }
   .chip[aria-pressed="true"] { background: var(--cherry); border-color: var(--cherry); color: #fff; }
+  .chip:disabled { opacity: .45; text-decoration: line-through; cursor: not-allowed; }
+  .slot-note { font-size: 13px; color: var(--muted); min-height: 20px; }
+  .slot-note.warn { color: var(--cherry); font-weight: 500; }
 
   .foods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .food {
@@ -220,6 +223,7 @@
           <button class="chip" data-time="outro" aria-pressed="false">Outro</button>
         </div>
         <input type="time" id="custom-time" hidden aria-label="Outro horário">
+        <p class="slot-note" id="slot-note" aria-live="polite"></p>
       </div>
       <button class="btn btn-yes" id="to-food" disabled>Continuar</button>
     </section>
@@ -259,6 +263,7 @@
         <a class="btn btn-wa" id="wa" href="#" target="_blank" rel="noopener">Enviar no WhatsApp</a>
         <button class="btn btn-ghost" id="copy">Copiar resposta</button>
         <p class="note" id="copy-note" aria-live="polite"></p>
+        <p class="note" id="agenda-note" aria-live="polite"></p>
       </div>
       <button class="back" data-back="s2">mudar alguma coisa</button>
     </section>
@@ -334,8 +339,43 @@
   const today = new Date();
   const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   dateEl.min = iso(today);
-  const check2 = () => (toFood.disabled = !(state.date && state.time));
-  dateEl.addEventListener("input", () => { state.date = dateEl.value; check2(); });
+  // Agenda: URL do App da Web do Google Apps Script (vazio = sem integração)
+  const AGENDA_URL = "https://script.google.com/macros/s/AKfycbw165ye5-qGm5fNAGdjQR4gRwHppd-ja244TegOKgR6QiuilHID4bPdxYM0JnxsbJsK/exec";
+  const DURACAO = 120;
+  const slotNote = $("slot-note");
+  let busy = [];
+  const mins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+  const livre = (t) => !busy.some(([a, b]) => mins(t) < b && mins(t) + DURACAO > a);
+  const setNote = (txt, warn) => { slotNote.textContent = txt; slotNote.classList.toggle("warn", !!warn); };
+  const check2 = () => (toFood.disabled = !(state.date && state.time && livre(state.time)));
+  function applyBusy() {
+    document.querySelectorAll(".chip").forEach((c) => {
+      if (c.dataset.time === "outro") return;
+      const ok = livre(c.dataset.time);
+      c.disabled = !ok;
+      c.title = ok ? "" : "Horário ocupado";
+      if (!ok && c.getAttribute("aria-pressed") === "true") { c.setAttribute("aria-pressed", "false"); state.time = ""; }
+    });
+    if (state.time && !livre(state.time)) setNote("Esse horário já está ocupado. Escolhe outro?", true);
+    check2();
+  }
+  async function loadBusy(date) {
+    busy = [];
+    if (!AGENDA_URL || !date) { applyBusy(); return; }
+    setNote("Conferindo os horários livres...");
+    toFood.disabled = true;
+    try {
+      const r = await fetch(AGENDA_URL + "?date=" + encodeURIComponent(date));
+      const data = await r.json();
+      if (date !== state.date) return;
+      busy = data.ok ? data.busy : [];
+      setNote(busy.length ? "Os horários riscados já estão ocupados." : "");
+    } catch {
+      setNote("");
+    }
+    applyBusy();
+  }
+  dateEl.addEventListener("input", () => { state.date = dateEl.value; loadBusy(state.date); });
   $("times").addEventListener("click", (e) => {
     const b = e.target.closest(".chip");
     if (!b) return;
@@ -350,7 +390,12 @@
     }
     check2();
   });
-  customTime.addEventListener("input", () => { state.time = customTime.value; check2(); });
+  customTime.addEventListener("input", () => {
+    state.time = customTime.value;
+    if (state.time && !livre(state.time)) setNote("Esse horário já está ocupado. Escolhe outro?", true);
+    else setNote(busy.length ? "Os horários riscados já estão ocupados." : "");
+    check2();
+  });
   toFood.addEventListener("click", () => show("s3"));
 
   // ---- Passo 3: comida ----
@@ -382,7 +427,32 @@
     $("copy-note").textContent = "";
     show("s4");
     confetti();
+    saveToAgenda();
   });
+  async function saveToAgenda() {
+    const note = $("agenda-note");
+    if (!AGENDA_URL) { note.textContent = ""; return; }
+    note.textContent = "Salvando na agenda...";
+    try {
+      const r = await fetch(AGENDA_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ date: state.date, time: state.time, food: state.food })
+      });
+      const data = await r.json();
+      if (data.ok) { note.textContent = "Já está na agenda ✓"; return; }
+      if (data.error === "ocupado") {
+        note.textContent = "";
+        show("s2");
+        await loadBusy(state.date);
+        setNote("Alguém acabou de pegar esse horário. Escolhe outro?", true);
+        return;
+      }
+      note.textContent = "Não consegui salvar na agenda. Me manda pelo WhatsApp que eu anoto.";
+    } catch {
+      note.textContent = "Não consegui salvar na agenda. Me manda pelo WhatsApp que eu anoto.";
+    }
+  }
   $("copy").addEventListener("click", async () => {
     const note = $("copy-note");
     try {
